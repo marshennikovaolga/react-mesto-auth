@@ -1,7 +1,4 @@
-# Здесь будет ваш проект на Реакте с авторизацией и регистрацией
+# Educational work Mesto-React for Yandex Practikum
 
-Используйте ваши предыдущие наработки по проекту Mesto. Это может быть работа 11-го спринта или его улучшенная версия после 2-х последних спринтов. 
-
-Все запросы на авторизацию, регистрацию и проверку токена должны работать через сервис `https://auth.nomoreparties.co`. Остальные запросы, не относящиеся к этой проектной работе могут быть к бэкенду из предыдущих спринтов.
-
-Успехов!
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app), JavaScript, HTML5, CSS3
+In this version of the website, the functionality of *registration* and *authorization* of users in their personal account has been added
