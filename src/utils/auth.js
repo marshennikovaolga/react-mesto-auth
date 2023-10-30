@@ -51,5 +51,4 @@ export function authUser(email, password) {
         "Authorization" : `Bearer ${token}`
       }})
       .then(res => checkResponse(res))
-      .then (data => data)
     }

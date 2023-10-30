@@ -33,10 +33,11 @@ function App() {
   // authorization states
   const [isRegistrationSuccess, setIsRegistrationSuccess] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
+  const [registrationUserData, setRegistrationUserData] = useState({ _id: '', email: '' })
+  const [loginUserData, setLoginUserData] = useState({ _id: '', email: '' })
 
   // context states
   const [currentUser, setCurrentUser] = useState({})
-  const [userData, setUserData] = useState({ _id: '', email: '' })
 
   // header state
   const [isTooltipOpen, setIsTooltipOpen] = useState(false)
@@ -90,9 +91,6 @@ function App() {
   }
 
 
-
-  // авторизация
-
   const checkToken = useCallback(() => {
     const jwt = localStorage.getItem('jwt');
 
@@ -104,7 +102,7 @@ function App() {
             _id: data._id,
             email: data.email
           };
-          setUserData(userData);
+          setLoginUserData(userData);
           toLogin();
           navigate('react-mesto-auth', { replace: true })
         })
@@ -117,33 +115,31 @@ function App() {
     }
   }, [navigate]);
 
-  // useEffect(() => {
-  //   checkToken()
-  // }, [checkToken]);
+  // авторизация при обновлении страницы
+  useEffect(() => {
+    const jwt = localStorage.getItem('jwt');
+    if (jwt) {
+      checkToken(jwt);
+    }
+  }, [checkToken]);
 
   useEffect(() => {
     if (loggedIn) {
-      setIsLoading(true)
+      setIsLoading(true);
+      Promise.all([api.getUserInfo(), api.getInitialCards()])
+        .then(([resDataUser, resDataCard]) => {
+          setCurrentUser(resDataUser);
+          setCards(resDataCard);
+        })
+        .catch(err => console.log(`Ошибка при загрузке данных пользователя или карточек: ${err}`))
+        .finally(() => {
+          setIsLoading(false);
+        });
     }
-
-    Promise.all([api.getUserInfo(), api.getInitialCards()])
-      .then(([resDataUser, resDataCard]) => {
-        setCurrentUser(resDataUser)
-        setCards(resDataCard)
-      })
-      .catch(err => console.log(`Ошибка при загрузке данных пользователя или карточек: ${err}`))
-      .finally(() => {
-        setIsLoading(false)
-      })
   }, [loggedIn]);
 
   function toLogin() {
     setLoggedIn(true);
-  }
-
-  function openTooltip() {
-    setIsTooltipOpen(true)
-    setEventListenerForDocument()
   }
 
   //registration
@@ -153,32 +149,37 @@ function App() {
     registUser(email, password)
       .then((res) => {
         if (res) {
+          setLoginUserData({ _id: '', email: '' });
+          localStorage.removeItem('jwt');
           setIsRegistrationSuccess(true);
+          setRegistrationUserData({ _id: res._id, email });
           openTooltip();
-          navigate('react-mesto-auth');
-        };
-        if (!res) {
-          openTooltip();
+          navigate('sign-in');
         }
       })
-      .catch((err) =>
-        console.log(`ошибка регистрации: ${err}`))
+      .catch((err) => {
+        if (err.response === 409) {
+          console.log(`Упс! Вы уже зарегистрированы!`);
+        } else {
+          console.log(`Ошибка регистрации: ${err}`);
+        }
+        openTooltip();
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }
 
   useEffect(() => {
     if (isTooltipOpen && isRegistrationSuccess) {
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         navigate('react-mesto-auth', { replace: false });
         closeAllPopups();
       }, 1300);
-
-      setTimeout(() => {
-        setIsRegistrationSuccess(false);
-      }, 1500);
+  
+      return () => clearTimeout(timeoutId);
     };
-    return () => clearTimeout(setTimeout);
-  }, [isTooltipOpen, isRegistrationSuccess, navigate, closeAllPopups, setIsRegistrationSuccess]);
-
+  }, [isTooltipOpen, isRegistrationSuccess, navigate, closeAllPopups]);
 
   // authorization
   function handleAuthorization(data) {
@@ -191,14 +192,41 @@ function App() {
           const token = checkToken();
           if (token) {
             toLogin();
+            setLoginUserData({ _id: token._id, email });
+            openTooltip()
             navigate('react-mesto-auth', { replace: true });
           }
         }
       })
       .catch((err) => {
-        console.log(`ошибка при авторизации: ${err}`);
+        console.log(`ошибка авторизации: ${err}`);
         openTooltip();
       })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }
+
+  useEffect(() => {
+    if (isTooltipOpen && loggedIn) {
+      const timeoutId = setTimeout(() => {
+        navigate('react-mesto-auth', { replace: false });
+        closeAllPopups();
+      }, 1300);
+  
+      return () => clearTimeout(timeoutId);
+    };
+  }, [isTooltipOpen, loggedIn, navigate, closeAllPopups]);
+
+  // sign out
+  function logOut() {
+    localStorage.removeItem('jwt');
+  }
+
+  // opened popup
+  function openTooltip() {
+    setIsTooltipOpen(true)
+    setEventListenerForDocument()
   }
 
   function handleEditProfileClick() {
@@ -310,7 +338,7 @@ function App() {
               ) : (
                 <>
                   <CurrentUserContext.Provider value={currentUser}>
-                    <Header userData={userData} />
+                    <Header loginUserData={loginUserData} logOut={logOut} />
                     <Main
                       onEditProfile={handleEditProfileClick}
                       onEditAvatar={handleEditAvatarClick}
