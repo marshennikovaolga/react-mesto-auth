@@ -169,7 +169,7 @@ function App() {
   useEffect(() => {
     if (isTooltipOpen && isRegistrationSuccess) {
       const timeoutId = setTimeout(() => {
-        navigate('react-mesto-auth', { replace: false });
+        navigate('sign-in', { replace: false });
         closeAllPopups();
       }, 1300);
   
