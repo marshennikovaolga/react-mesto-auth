@@ -158,11 +158,7 @@ function App() {
         }
       })
       .catch((err) => {
-        if (err.response === 409) {
-          console.log(`Упс! Вы уже зарегистрированы!`);
-        } else {
-          console.log(`Ошибка регистрации: ${err}`);
-        }
+        console.log(`ошибка регистрации: ${err}`);
         openTooltip();
       })
       .finally(() => {
@@ -317,6 +313,7 @@ function App() {
   return (
     <>
       <Routes>
+        <Route path='/' element={<Navigate to='/react-mesto-auth'/>}/>
         <Route path="/sign-in" element={
           <>
             <AuthHeader />
