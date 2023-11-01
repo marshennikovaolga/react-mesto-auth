@@ -152,7 +152,6 @@ function App() {
         setIsRegistrationSuccess(true);
         setRegistrationUserData({ _id: res._id, email });
         openTooltip();
-        // Move animation logic here
         const timeoutId = setTimeout(() => {
           navigate('sign-in', { replace: false });
           closeAllPopups();
@@ -181,7 +180,6 @@ function App() {
               toLogin();
               setLoginUserData({ _id: token._id, email });
               openTooltip();
-              // Move animation logic here
               const timeoutId = setTimeout(() => {
                 navigate('react-mesto-auth', { replace: false });
                 closeAllPopups();
