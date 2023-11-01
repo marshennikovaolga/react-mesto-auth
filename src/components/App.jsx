@@ -90,7 +90,6 @@ function App() {
     });
   }
 
-
   const checkToken = useCallback(() => {
     const jwt = localStorage.getItem('jwt');
 
@@ -142,77 +141,64 @@ function App() {
     setLoggedIn(true);
   }
 
+    function handleRegistration(data) {
+    const { email, password } = data;
   //registration
-  function handleRegistration(data) {
-    const { email, password } = data;
-
-    registUser(email, password)
-      .then((res) => {
-        if (res) {
-          setLoginUserData({ _id: '', email: '' });
-          localStorage.removeItem('jwt');
-          setIsRegistrationSuccess(true);
-          setRegistrationUserData({ _id: res._id, email });
-          openTooltip();
-          navigate('sign-in');
-        }
-      })
-      .catch((err) => {
-        console.log(`ошибка регистрации: ${err}`);
+  registUser(email, password)
+    .then((res) => {
+      if (res) {
+        setLoginUserData({ _id: '', email: '' });
+        localStorage.removeItem('jwt');
+        setIsRegistrationSuccess(true);
+        setRegistrationUserData({ _id: res._id, email });
         openTooltip();
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+        // Move animation logic here
+        const timeoutId = setTimeout(() => {
+          navigate('sign-in', { replace: false });
+          closeAllPopups();
+        }, 1300);
+        return timeoutId;
+      }
+    })
+    .catch((err) => {
+      console.log(`ошибка регистрации: ${err}`);
+      openTooltip();
+    })
+    .finally(() => {
+      setIsLoading(false);
+    });
   }
 
-  useEffect(() => {
-    if (isTooltipOpen && isRegistrationSuccess) {
-      const timeoutId = setTimeout(() => {
-        navigate('sign-in', { replace: false });
-        closeAllPopups();
-      }, 1300);
-  
-      return () => clearTimeout(timeoutId);
-    };
-  }, [isTooltipOpen, isRegistrationSuccess, navigate, closeAllPopups]);
-
-  // authorization
-  function handleAuthorization(data) {
-    const { email, password } = data;
-
-    authUser(email, password)
-      .then((jwt) => {
-        if (jwt) {
-          localStorage.setItem('jwt', jwt);
-          const token = checkToken();
-          if (token) {
-            toLogin();
-            setLoginUserData({ _id: token._id, email });
-            openTooltip()
-            navigate('react-mesto-auth', { replace: true });
+    function handleAuthorization(data) {
+      const { email, password } = data;
+    
+      authUser(email, password)
+        .then((jwt) => {
+          if (jwt) {
+            localStorage.setItem('jwt', jwt);
+            const token = checkToken();
+            if (token) {
+              toLogin();
+              setLoginUserData({ _id: token._id, email });
+              openTooltip();
+              // Move animation logic here
+              const timeoutId = setTimeout(() => {
+                navigate('react-mesto-auth', { replace: false });
+                closeAllPopups();
+              }, 1300);
+              return timeoutId;
+            }
           }
-        }
-      })
-      .catch((err) => {
-        console.log(`ошибка авторизации: ${err}`);
-        openTooltip();
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }
-
-  useEffect(() => {
-    if (isTooltipOpen && loggedIn) {
-      const timeoutId = setTimeout(() => {
-        navigate('react-mesto-auth', { replace: false });
-        closeAllPopups();
-      }, 1300);
-  
-      return () => clearTimeout(timeoutId);
-    };
-  }, [isTooltipOpen, loggedIn, navigate, closeAllPopups]);
+        })
+        .catch((err) => {
+          console.log(`ошибка авторизации: ${err}`);
+          setIsRegistrationSuccess(false);
+          openTooltip();
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    }
 
   // sign out
   function logOut() {
